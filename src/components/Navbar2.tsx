@@ -33,7 +33,7 @@ export default function NavbarGalery() {
                 {/* Logo */}
                 <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-blue">
                   <Image
-                    src="/logo.svg"
+                    src="/assets/icons/logo.svg"
                     alt="Logo"
                     width={30}
                     height={30}
@@ -68,7 +68,7 @@ export default function NavbarGalery() {
               {/* Logo */}
               <div className="w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden flex items-center justify-center bg-blue">
                 <Image
-                  src="/logo.svg"
+                  src="/assets/icons/logo.svg"
                   alt="Logo"
                   width={30}
                   height={30}

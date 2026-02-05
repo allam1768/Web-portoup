@@ -1,7 +1,8 @@
 "use client";
 import Footer from '@/components/Footer';
 import { useState } from 'react';
-import { projectData } from "@/components/data";
+import portfolioData from "@/data/portfolio-data.json";
+const { projectData } = portfolioData;
 import NavbarGalery from '@/components/Navbar2';
 
 interface ProjectCardProps {
@@ -142,7 +143,7 @@ export default function GalleryPage() {
             <div className="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
               <div className="overflow-hidden rounded-xl mb-4">
                 <img
-                  src="/dataproject/sertiv1.webp"
+                  src="/assets/images/certificates/sertiv1.webp"
                   alt="Certificate 1"
                   className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-110"
                 />
@@ -161,7 +162,7 @@ export default function GalleryPage() {
             <div className="group bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
               <div className="overflow-hidden rounded-xl mb-4">
                 <img
-                  src="/dataproject/sertiv2.webp"
+                  src="/assets/images/certificates/sertiv2.webp"
                   alt="Certificate 2"
                   className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-110"
                 />

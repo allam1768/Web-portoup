@@ -31,7 +31,7 @@ export default function Footer() {
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex items-center justify-center bg-blue-500">
                 {/* Changed <img> to <Image /> */}
                 <Image
-                  src="/logo.svg"
+                  src="/assets/icons/logo.svg"
                   alt="Allam Logo"
                   width={32} // Approximate width, adjust as needed
                   height={32} // Approximate height, adjust as needed

@@ -1,0 +1,309 @@
+{
+  "educationData": [
+    {
+      "level": "Elementary school",
+      "period": "2014 - 2020",
+      "school": "MIN 4 Jakarta Selatan",
+      "isActive": false,
+      "image": ""
+    },
+    {
+      "level": "Junior high school",
+      "period": "2020 - 2023",
+      "school": "Trenmatika Islamic Boarding School",
+      "isActive": false,
+      "image": ""
+    },
+    {
+      "level": "Vocational School",
+      "period": "2023 - Now",
+      "school": "SMK Raden Umar Said",
+      "isActive": true,
+      "image": ""
+    }
+  ],
+  "projectData": [
+    {
+      "projectName": "Space & Plane Calculator",
+      "image": "/assets/images/projects/tugas puasa.png",
+      "date": "23,04,2024",
+      "link": "https://github.com/allam1768/TugasPuasa2.git",
+      "description": "To calculate 2D & 3D shapes that helps users find the area and volume of \nvarious geometric shapes."
+    },
+    {
+      "projectName": "Tiketindo",
+      "image": "/assets/images/projects/Tiketindo.png",
+      "date": "25,09,2024",
+      "link": "https://tiket-indo.vercel.app/",
+      "description": "online ticketing website for various types of transportation across all regions of Indonesia. Fast, easy, and \n convenient  for your journey."
+    },
+    {
+      "projectName": "WebPorto",
+      "image": "/assets/images/projects/Web portofolio.png",
+      "date": "13,06,2025",
+      "link": "https://github.com/allam1768/Web-porto.git",
+      "description": "This website is a personal portfolio showcasing various creative and technical projects that I have worked on."
+    },
+    {
+      "projectName": "CourseMiut",
+      "image": "/assets/images/projects/CourseMiut.png",
+      "date": "20,01,2025",
+      "link": "https://404",
+      "description": "CourseMiut is an online course platform designed specifically for those of you who want to learn coding from basic to advanced."
+    },
+    {
+      "projectName": "Movapp",
+      "image": "/assets/images/projects/movapp.jpg",
+      "date": "14,10,2024",
+      "link": "https://github.com/allam1768/movapp.git",
+      "description": "Movapp is a movie app that makes it easy for you to enjoy movies."
+    },
+    {
+      "projectName": "Hamatech",
+      "image": "/assets/images/projects/hamatech.jpg",
+      "date": "10,02,2025",
+      "link": "https://404",
+      "description": "Hamatech is a pest control monitoring application specifically designed to help pest control companies."
+    }
+  ],
+  "skillsData": [
+    {
+      "title": "Photography",
+      "image": "/assets/images/general/10.webp",
+      "linkTo": "/galery"
+    },
+    {
+      "title": "Frontend",
+      "image": "/assets/images/general/Frondend.webp",
+      "linkTo": "/frondend"
+    }
+  ],
+  "frondData": [
+    {
+      "name": "JavaScript",
+      "image": "/assets/icons/tech/js.svg"
+    },
+    {
+      "name": "TypeScript",
+      "image": "/assets/icons/tech/ts.svg"
+    },
+    {
+      "name": "HTML",
+      "image": "/assets/icons/tech/html.svg"
+    },
+    {
+      "name": "CSS",
+      "image": "/assets/icons/tech/css.svg"
+    },
+    {
+      "name": "Tailwind CSS",
+      "image": "/assets/icons/tech/tw.svg"
+    },
+    {
+      "name": "React.js",
+      "image": "/assets/icons/tech/rt.svg"
+    },
+    {
+      "name": "Next.js",
+      "image": "/assets/icons/tech/next.svg"
+    },
+    {
+      "name": "Flutter",
+      "image": "/assets/icons/tech/ft.svg"
+    },
+    {
+      "name": "Dart",
+      "image": "/assets/icons/tech/dart.svg"
+    },
+    {
+      "name": "Java",
+      "image": "/assets/icons/tech/java.svg"
+    },
+    {
+      "name": "Laravel",
+      "image": "/assets/icons/tech/lv.svg"
+    },
+    {
+      "name": "Firebase",
+      "image": "/assets/icons/tech/fs.svg"
+    },
+    {
+      "name": "GitHub",
+      "image": "/assets/icons/tech/github.svg"
+    },
+    {
+      "name": "Visual Studio Code",
+      "image": "/assets/icons/tech/vs.svg"
+    },
+    {
+      "name": "Android Studio",
+      "image": "/assets/icons/tech/android.svg"
+    },
+    {
+      "name": "Figma",
+      "image": "/assets/icons/tech/figma.svg"
+    }
+  ],
+  "galleryItems": [
+    {
+      "id": 1,
+      "image": "/assets/images/gallery/1.webp",
+      "text": ""
+    },
+    {
+      "id": 2,
+      "image": "/assets/images/gallery/2.webp",
+      "text": ""
+    },
+    {
+      "id": 3,
+      "image": "/assets/images/gallery/3.webp",
+      "text": ""
+    },
+    {
+      "id": 4,
+      "image": "/assets/images/gallery/4.webp",
+      "text": ""
+    },
+    {
+      "id": 5,
+      "image": "/assets/images/gallery/5.webp",
+      "text": ""
+    },
+    {
+      "id": 6,
+      "image": "/assets/images/gallery/6.webp",
+      "text": ""
+    },
+    {
+      "id": 7,
+      "image": "/assets/images/gallery/7.webp",
+      "text": ""
+    },
+    {
+      "id": 8,
+      "image": "/assets/images/gallery/8.webp",
+      "text": ""
+    },
+    {
+      "id": 9,
+      "image": "/assets/images/gallery/9.webp",
+      "text": ""
+    },
+    {
+      "id": 11,
+      "image": "/assets/images/gallery/11.webp",
+      "text": ""
+    },
+    {
+      "id": 13,
+      "image": "/assets/images/gallery/13.webp",
+      "text": ""
+    },
+    {
+      "id": 14,
+      "image": "/assets/images/gallery/14.webp",
+      "text": ""
+    },
+    {
+      "id": 15,
+      "image": "/assets/images/gallery/15.webp",
+      "text": ""
+    },
+    {
+      "id": 16,
+      "image": "/assets/images/gallery/16.webp",
+      "text": ""
+    },
+    {
+      "id": 17,
+      "image": "/assets/images/gallery/17.webp",
+      "text": ""
+    },
+    {
+      "id": 18,
+      "image": "/assets/images/gallery/18.webp",
+      "text": ""
+    },
+    {
+      "id": 19,
+      "image": "/assets/images/gallery/19.webp",
+      "text": ""
+    },
+    {
+      "id": 20,
+      "image": "/assets/images/gallery/20.webp",
+      "text": ""
+    },
+    {
+      "id": 21,
+      "image": "/assets/images/gallery/21.webp",
+      "text": ""
+    },
+    {
+      "id": 22,
+      "image": "/assets/images/gallery/22.webp",
+      "text": ""
+    },
+    {
+      "id": 23,
+      "image": "/assets/images/gallery/23.webp",
+      "text": ""
+    },
+    {
+      "id": 24,
+      "image": "/assets/images/gallery/24.jpg",
+      "text": ""
+    },
+    {
+      "id": 25,
+      "image": "/assets/images/gallery/25.jpg",
+      "text": ""
+    },
+    {
+      "id": 26,
+      "image": "/assets/images/gallery/26.jpg",
+      "text": ""
+    },
+    {
+      "id": 27,
+      "image": "/assets/images/gallery/27.jpg",
+      "text": ""
+    },
+    {
+      "id": 28,
+      "image": "/assets/images/gallery/28.jpg",
+      "text": ""
+    },
+    {
+      "id": 29,
+      "image": "/assets/images/gallery/29.jpg",
+      "text": ""
+    },
+    {
+      "id": 30,
+      "image": "/assets/images/gallery/30.jpg",
+      "text": ""
+    },
+    {
+      "id": 31,
+      "image": "/assets/images/gallery/31.jpg",
+      "text": ""
+    },
+    {
+      "id": 32,
+      "image": "/assets/images/gallery/32.jpg",
+      "text": ""
+    },
+    {
+      "id": 33,
+      "image": "/assets/images/gallery/33.jpg",
+      "text": ""
+    },
+    {
+      "id": 34,
+      "image": "/assets/images/gallery/34.jpg",
+      "text": ""
+    }
+  ]
+}

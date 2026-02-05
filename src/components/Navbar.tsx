@@ -62,7 +62,7 @@ export default function App() {
         <div className="flex justify-between items-center px-3 sm:px-5 md:px-6 lg:px-8 w-full">
           <div className="flex items-center gap-2">
             <Image
-              src="/logo.svg"
+              src="/assets/icons/logo.svg"
               alt="Logo"
               width={24}
               height={24}

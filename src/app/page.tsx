@@ -16,8 +16,10 @@ const rakkas = Rakkas({
 });
 
 // Import the data from the new file
-import { educationData, projectData, skillsData } from "../components/data";
+import portfolioData from "@/data/portfolio-data.json";
 import Footer from "@/components/Footer";
+
+const { educationData, projectData, skillsData } = portfolioData;
 
 export default function App() {
   return (
@@ -49,7 +51,7 @@ export default function App() {
             <div className="relative mx-2 sm:mx-4 lg:-mx-25 flex items-end">
               <div className="relative w-[280px] h-[370px] sm:w-[370px] sm:h-[470px] lg:w-[470px] lg:h-[580px] transition-transform duration-500 ">
                 <Image
-                  src="/Allam-1.png"
+                  src="/assets/images/profile/Allam-1.png"
                   alt="Allam Profile"
                   layout="fill"
                   objectFit="contain"
@@ -111,14 +113,14 @@ export default function App() {
             <button
               onClick={() => {
                 const link = document.createElement("a");
-                link.href = "/cvallam.pdf";
+                link.href = "/assets/documents/cvallam.pdf";
                 link.download = "cvallam.pdf";
                 link.click();
               }}
               className="w-full flex items-center justify-center gap-2 bg-[#9D00FF] text-[#000000] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
             >
               Download CV
-              <img src="icontcv.svg" alt="download" className="w-4 h-4" />
+              <img src="/assets/icons/icontcv.svg" alt="download" className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -326,7 +328,7 @@ export default function App() {
               <div className="flex justify-center lg:justify-start animate-fade-in-left">
                 <div className="w-[220px] h-[280px] sm:w-[250px] sm:h-[320px] lg:w-[280px] lg:h-[350px] hover:scale-105 transition-transform duration-500">
                   <TiltedCard
-                    imageSrc="/me.webp"
+                    imageSrc="/assets/images/profile/me.webp"
                     altText="Allam Permata Putra"
                     captionText="Allam Permata Putra"
                     containerHeight="100%"
@@ -378,7 +380,7 @@ export default function App() {
                 {/* Tombol Download CV - Animated */}
                 <div className="flex justify-center lg:justify-start">
                   <a
-                    href="/cvallam.pdf"
+                    href="/assets/documents/cvallam.pdf"
                     download
                     className="bg-[#2BB6C0] inline-flex items-center gap-2 text-black px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 text-sm sm:text-base hover:scale-110 hover:shadow-lg animate-bounce-gentle"
                   >

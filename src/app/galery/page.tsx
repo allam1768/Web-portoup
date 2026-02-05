@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import NavbarGalery from '@/components/Navbar2';
 import Footer from '@/components/Footer';
-import galleryItems from '@/components/data'; // ambil data dari file data.js
+import portfolioData from "@/data/portfolio-data.json";
+const { galleryItems } = portfolioData;
 
 interface GalleryItem {
   id: number;
