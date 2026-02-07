@@ -5,7 +5,7 @@ import React from 'react';
 interface SkillsCardProps {
   title: string;
   image?: string;
-  linkTo?: string; // Add a prop for the link destination
+  linkTo?: string | null; // Add a prop for the link destination
 }
 
 const SkillsCard: React.FC<SkillsCardProps> = ({ title, image, linkTo }) => {

@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import SkillsCard from "@/components/SkilsCard";
 import ProjectCard from "@/components/ProjectCard";
 import TiltedCard from "@/components/TiltedCard";
@@ -8,85 +9,314 @@ import ClickSpark from "@/components/ClickSpark";
 import Image from "next/image";
 import CountUp from "@/components/CountUp";
 import Link from "next/link";
-import { Rakkas } from "next/font/google";
-
-const rakkas = Rakkas({
-  subsets: ["latin"],
-  weight: ["400"],
-});
-
-// Import the data from the new file
 import portfolioData from "@/data/portfolio-data.json";
 import Footer from "@/components/Footer";
+import Squares from "@/components/Squares";
 
-const { educationData, projectData, skillsData } = portfolioData;
+const { educationData, projectData, skillsData, frondData } = portfolioData;
 
 export default function App() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const itemPositions = useRef<number[]>([]);
+  const visualFocusPointRef = useRef(0);
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const snapTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // --- Performance Optimization State ---
+  const ticking = useRef(false);
+  const isIntersecting = useRef(false);
+
+  // Memoize sorted project data to avoid re-sorting on every render
+  const sortedProjectData = React.useMemo(() => {
+    return projectData
+      .sort((a, b) => {
+        const dateA = a.date.split(",").reverse().join("");
+        const dateB = b.date.split(",").reverse().join("");
+        return dateB.localeCompare(dateA);
+      })
+      .slice(0, 3);
+  }, []); // Empty dependency array since projectData is static/imported
+
+  useEffect(() => {
+    // Logic utama scroll (dipisahkan dari event handler langsung)
+    const updateScrollState = () => {
+      const section = sectionRef.current;
+      const scrollContainer = scrollRef.current;
+      if (!section || !scrollContainer) return;
+
+      const rect = section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const sectionHeight = section.offsetHeight;
+
+      // Hitung jarak scrollable vertikal
+      const scrollableDistance = sectionHeight - viewportHeight;
+
+      // Hitung progress (0.0 sampai 1.0)
+      let progress = -rect.top / scrollableDistance;
+
+      // Clamp progress
+      if (progress < 0) progress = 0;
+      if (progress > 1) progress = 1;
+
+      // Konversi progress vertikal menjadi scroll horizontal
+      const maxScrollLeft =
+        scrollContainer.scrollWidth - scrollContainer.clientWidth;
+      scrollContainer.scrollLeft = progress * maxScrollLeft;
+
+      // --- Active Item Detection ---
+      // Hybrid: Visual Calc + Cached Positions
+      let closestIndex = 0;
+      let minDiff = Number.MAX_VALUE;
+
+      // Cached Padding Left (Visual Focus Point)
+      const focusPoint = visualFocusPointRef.current;
+
+      itemPositions.current.forEach((pos, index) => {
+        // Posisi visual saat ini = Posisi Asli - ScrollContainer.scrollLeft
+        const visualPos = pos - scrollContainer.scrollLeft;
+
+        // Jarak ke titik fokus (Left Edge)
+        const diff = Math.abs(visualPos - focusPoint);
+
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIndex = index;
+        }
+      });
+
+      setActiveIndex(closestIndex);
+
+      // --- Snapping Logic (Debounced) ---
+      if (snapTimeout.current) clearTimeout(snapTimeout.current);
+
+      snapTimeout.current = setTimeout(() => {
+        if (progress > 0.05 && progress < 0.95) {
+          // Snap target
+          const targetPos = itemPositions.current[closestIndex];
+          const targetLeft = targetPos - focusPoint;
+          const targetProgress = targetLeft / maxScrollLeft;
+          const clampedProgress = Math.min(Math.max(targetProgress, 0), 1);
+
+          const targetScrollY =
+            section.offsetTop + clampedProgress * scrollableDistance;
+
+          // Only snap if significantly off to avoid fighting user
+          if (Math.abs(targetScrollY - window.scrollY) > 10) {
+            window.scrollTo({
+              top: targetScrollY,
+              behavior: "smooth",
+            });
+          }
+        }
+      }, 150);
+    };
+
+    const onScroll = () => {
+      // Skip if not visible
+      if (!isIntersecting.current) return;
+
+      // Throttling with requestAnimationFrame
+      if (!ticking.current) {
+        requestAnimationFrame(() => {
+          updateScrollState();
+          ticking.current = false;
+        });
+        ticking.current = true;
+      }
+    };
+
+    const updateCalculations = () => {
+      const scrollContainer = scrollRef.current;
+      if (!scrollContainer) return;
+
+      // Cache Visual Focus Point (Padding Left)
+      const style = window.getComputedStyle(scrollContainer);
+      visualFocusPointRef.current = parseFloat(style.paddingLeft) || 0;
+
+      // Cache Item Positions
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const currentScroll = scrollContainer.scrollLeft;
+
+      itemPositions.current = itemRefs.current.map((item) => {
+        if (!item) return 0;
+        const rect = item.getBoundingClientRect();
+        return rect.left + currentScroll - containerRect.left;
+      });
+    };
+
+    const onResize = () => {
+      updateCalculations();
+      if (isIntersecting.current) {
+        updateScrollState();
+      }
+    };
+
+    // Use IntersectionObserver to optimize listeners
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isIntersecting.current = entry.isIntersecting;
+        });
+      },
+      { rootMargin: "100px 0px" }, // Preload/activate slightly before viewport
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    // Use ResizeObserver for layout changes
+    const resizeObserver = new ResizeObserver(() => {
+      onResize();
+    });
+
+    if (scrollRef.current) {
+      resizeObserver.observe(scrollRef.current);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+
+    // Initial Calc
+    setTimeout(onResize, 100);
+
+    return () => {
+      observer.disconnect();
+      resizeObserver.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      if (snapTimeout.current) clearTimeout(snapTimeout.current);
+    };
+  }, []);
+
+  // --- Skills Section Scroll Logic ---
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start center", "end end"],
+  });
+
+  const springScroll = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
+  // Start at 0% (which we map to padding-left 100vw in CSS) and move WAY to the left
+  // Reduced to -100% and section height to 300vh to avoid empty space on the right
+  const xSkills = useTransform(springScroll, [0, 1], ["0%", "-130%"]);
+
+  // --- Education Section Logic ---
+  const [activeEduIndex, setActiveEduIndex] = React.useState<number | null>(
+    null,
+  );
+  const educationItemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute("data-index"));
+            setActiveEduIndex(index);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "-45% 0px -45% 0px",
+        threshold: 0,
+      },
+    );
+
+    educationItemRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // --- Parallax Effect State ---
+  const { scrollY } = useScroll();
+  const ySoftware = useTransform(scrollY, [0, 500], [0, -150]); // Move up faster
+  const yEngineer = useTransform(scrollY, [0, 500], [0, 100]); // Move down
+  const yImage = useTransform(scrollY, [0, 500], [0, -50]); // Move up slowly
+
   return (
     <div className="w-full">
       {/* Home Section */}
       <section
         id="home"
-        className="relative flex flex-col items-center justify-end h-screen bg-[#242424] text-black overflow-hidden pb-0"
+        className="sticky top-0 z-0 flex flex-col items-center justify-end h-screen bg-[#242424] text-black overflow-hidden pb-0"
       >
         {/* Main Typography & Image Container */}
         <div className="relative w-full flex flex-col items-center justify-end mb-10">
           {/* Software Text */}
-          <h1
-            className={`text-[12vw] sm:text-[13vw] lg:text-[14vw] leading-[0.1] text-[#CAFA0A] text-center z-0 animate-fade-in-down ${rakkas.className}`}
+          <motion.h1
+            style={{ y: ySoftware }}
+            className={`text-[12vw] sm:text-[13vw] lg:text-[16vw] leading-[0.1] text-[#CAFA0A] text-center z-0 animate-fade-in-down font-rakkas`}
           >
             Software
-          </h1>
+          </motion.h1>
 
           {/* Engineer Text Split with Image */}
           <div className="relative w-full flex items-start justify-center z-10 -mt-2 sm:-mt-3 lg:-mt-6 lg:-mb-20">
             {/* "engi" part */}
-            <h1
-              className={`text-[12vw] sm:text-[13vw] lg:text-[14vw] leading-[1.8] text-[#CAFA0A] z-0 animate-fade-in-up ${rakkas.className}`}
+            <motion.h1
+              style={{ y: yEngineer }}
+              className={`text-[12vw] sm:text-[13vw] lg:text-[16vw] leading-[1.8] text-[#CAFA0A] z-0 animate-fade-in-up font-rakkas`}
             >
               engi
-            </h1>
+            </motion.h1>
 
             {/* Image - Between text, anchored to bottom */}
-            <div className="relative mx-2 sm:mx-4 lg:-mx-25 flex items-end">
+            <motion.div
+              style={{ y: yImage }}
+              className="relative mx-2 sm:mx-4 lg:-mx-25 flex items-end"
+            >
               <div className="relative w-[280px] h-[370px] sm:w-[370px] sm:h-[470px] lg:w-[470px] lg:h-[580px] transition-transform duration-500 ">
                 <Image
                   src="/assets/images/profile/Allam-1.png"
                   alt="Allam Profile"
                   layout="fill"
                   objectFit="contain"
-                  className="w-full h-full drop-shadow-2xl"
                   priority
                 />
               </div>
-            </div>
+            </motion.div>
 
             {/* "neer" part */}
-            <h1
-              className={`text-[12vw] sm:text-[13vw] lg:text-[14vw] leading-[1.8] text-[#CAFA0A] z-0 animate-fade-in-up ${rakkas.className}`}
+            <motion.h1
+              style={{ y: yEngineer }}
+              className={`text-[12vw] sm:text-[13vw] lg:text-[16vw] leading-[1.8] text-[#CAFA0A] z-0 animate-fade-in-up font-rakkas`}
             >
               neer
-            </h1>
+            </motion.h1>
           </div>
         </div>
 
         {/* Right Side Quote */}
-        <div className="absolute right-4 top-[60%] sm:right-10 lg:right-20 max-w-[180px] sm:max-w-[220px] lg:max-w-[260px] text-left z-30 animate-fade-in-right animation-delay-600">
-          <span className="text-4xl sm:text-5xl lg:text-6xl text-[#000000] opacity-50 font-serif leading-none mb-2">
-            {" "}
-            &ldquo;{" "}
-          </span>
-          <p className="text-xs sm:text-sm text-gray leading-relaxed font-medium">
+        <div className="absolute right-4 top-[70%] sm:right-10 lg:right-20 max-w-[180px] sm:max-w-[220px] lg:max-w-[290px] text-left z-30 animate-fade-in-right animation-delay-600">
+          <p className="text-xs sm:text-sm text-[#E0E0E0] leading-relaxed font-reguler font-montserrat-alternates">
             I design and build frontend experiences for web and mobile products,
             focusing on performance, clarity, and intuitive user interactions.
           </p>
         </div>
+      </section>
 
-        {/* Text Quote Tab - Bottom Left */}
-        <div className="absolute bottom-0 left-0 right-0 z-50 hidden lg:block animate-fade-in-left animation-delay-800">
+      {/* project Section */}
+      <section
+        id="project"
+        className="relative z-20 min-h-screen bg-[#121212] flex flex-col items-center justify-center py-10 rounded-t-2xl -mt-7"
+      >
+        {/* Text Quote Tab - top Left */}
+        <div className="absolute top-0 left-0 right-0 z-50 hidden lg:block">
           {/* Garis horizontal penuh */}
           <div
-            className="h-[25px] rounded-t-3xl"
+            className="h-[25px] rounded-t-2xl"
             style={{ backgroundColor: "#121212" }}
           />
 
@@ -95,19 +325,25 @@ export default function App() {
             className="absolute bottom-[25px] px-2 pt-2 pb-1 max-w-[260px]"
             style={{
               backgroundColor: "#121212",
-              borderRadius: "15px 15px 0px 0px", // Membuat sudut atas sedikit lebih bulat agar serasi
+              borderRadius: "10px 10px 0px 0px", // Membuat sudut atas sedikit lebih bulat agar serasi
               left: "10%",
             }}
           >
-            {/* --- LENGKUNGAN LUAR KIRI --- */}
-            <div className="absolute bottom-0 -left-[20px] w-[20px] h-[20px] bg-[#121212]">
-              <div className="w-full h-full bg-[#242424] rounded-br-[15px]"></div>
-            </div>
+            {/* Lengkungan kiri */}
+            <svg
+              className="absolute bottom-0 -left-[20px] w-[20px] h-[20px]"
+              viewBox="0 0 20 20"
+            >
+              <path d="M 20 0 Q 20 20 0 20 L 20 20 Z" fill="#121212" />
+            </svg>
 
-            {/* --- LENGKUNGAN LUAR KANAN --- */}
-            <div className="absolute bottom-0 -right-[20px] w-[20px] h-[20px] bg-[#121212]">
-              <div className="w-full h-full bg-[#242424] rounded-bl-[15px]"></div>
-            </div>
+            {/* Lengkungan kanan */}
+            <svg
+              className="absolute bottom-0 -right-[20px] w-[20px] h-[20px]"
+              viewBox="0 0 20 20"
+            >
+              <path d="M 0 0 Q 0 20 20 20 L 0 20 Z" fill="#121212" />
+            </svg>
 
             {/* Button Download CV */}
             <button
@@ -117,108 +353,62 @@ export default function App() {
                 link.download = "cvallam.pdf";
                 link.click();
               }}
-              className="w-full flex items-center justify-center gap-2 bg-[#9D00FF] text-[#000000] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-[#9D00FF] text-[#000000] px-4 py-2 rounded-lg text-sm font-montserrat-subrayada  hover:bg-gray-100 transition-colors"
             >
               Download CV
-              <img src="/assets/icons/icontcv.svg" alt="download" className="w-4 h-4" />
+              <img
+                src="/assets/icons/icontcv.svg"
+                alt="download"
+                className="w-4 h-4"
+              />
             </button>
           </div>
         </div>
-      </section>
 
-      {/* project Section */}
-      <section
-        id="project"
-        className="scroll-mt-18 bg-[#121212] flex items-center justify-center"
-      >
+        {/* ================= CONTENT PROJECT ================= */}
         <div className="w-full">
-          <ClickSpark
-            sparkColor="#2BB6C0"
-            sparkSize={10}
-            sparkRadius={15}
-            sparkCount={8}
-            duration={400}
+          <div
+            className="rounded-b-2xl px-4 sm:px-8 lg:px-16 animate-fade-in"
+            style={{ backgroundColor: "#121212" }}
           >
-            <div
-              className="
-              rounded-b-3xl
-                pt-5 sm:pt-10
-                px-4 sm:px-8 lg:px-16
-                animate-fade-in
-              "
-              style={{ backgroundColor: "#121212" }}
-            >
-              {/* Judul + Tombol */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between mb-6 sm:mb-9 gap-4 sm:gap-0">
-                {/* Judul - Animated */}
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-start animate-slide-in-left">
-                  <span className="block text-white">
-                    Let&apos;s Have a Look at
-                  </span>
-                  <span className="block">
-                    <span className="text-white">my </span>
-                    <span style={{ color: "#2BB6C0" }}>Project</span>
-                  </span>
-                </h2>
+            {/* Judul */}
+            <div className="mb-10 ml-2 sm:ml-10 lg:ml-16">
+              <h2 className="text-2xl sm:text-3xl lg:text-6xl font-bold text-start animate-slide-in-left font-rakkas text-white">
+                Latest Project
+              </h2>
+            </div>
 
-                {/* Tombol - Animated */}
-                <Link href="/project" passHref>
-                  <div
-                    className="
-      flex items-center gap-2
-      text-white font-semibold
-      py-2 px-4 sm:px-5
-      rounded-full
-      transition-all duration-300
-      text-sm sm:text-base
-      self-end sm:self-auto
-      whitespace-nowrap
-      mt-2 sm:mt-0
-      bg-[#2BB6C0]
-      cursor-pointer
-      hover:scale-110 hover:shadow-lg
-      animate-slide-in-right
-    "
-                  >
-                    See More
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="transform rotate-[30deg] sm:w-5 sm:h-5 transition-transform duration-300 group-hover:-translate-y-1"
-                    >
-                      <path
-                        d="M12 4L12 20M12 4L6 10M12 4L18 10"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </Link>
-              </div>
+            {/* Wrapper Tombol + Grid */}
+            <div className="flex flex-col items-center">
+              <div className="max-w-fit">
+                {/* Tombol See More */}
+                <div className="flex justify-end mb-6">
+                  <Link href="/project" passHref>
+                    <div className="flex items-center gap-2 text-white font-semibold py-2 px-4 sm:px-5 transition-all duration-300 text-sm font-montserrat-alternates font-thin cursor-pointer border-2 border-[#CAFA0A] hover:bg-[#CAFA0A] hover:text-black group">
+                      See more
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="transform rotate-[90deg] sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1"
+                      >
+                        <path
+                          d="M12 4L12 20M12 4L6 10M12 4L18 10"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </Link>
+                </div>
 
-              {/* Project Grid - Animated */}
-              <div
-                className="
-                flex justify-center items-center
-                gap-4 sm:gap-6 lg:gap-10
-                pb-6 sm:pb-10
-                flex-wrap
-                mt-6 sm:mt-10 lg:mt-30
-              "
-              >
-                {projectData
-                  .sort((a, b) => {
-                    const dateA = a.date.split(",").reverse().join("");
-                    const dateB = b.date.split(",").reverse().join("");
-                    return dateB.localeCompare(dateA);
-                  })
-                  .slice(0, 3)
-                  .map((project, index) => (
+                {/* Grid Kartu */}
+                <div className="flex justify-center items-center gap-4 sm:gap-6 lg:gap-10 pb-6 sm:pb-10 flex-wrap">
+                  {sortedProjectData.map((project, index) => (
                     <div
                       key={index}
                       className="animate-fade-in-up"
@@ -233,542 +423,316 @@ export default function App() {
                       />
                     </div>
                   ))}
+                </div>
               </div>
             </div>
-          </ClickSpark>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="relative z-30 -mt-10 sm:-mt-16 lg:-mt-20"
+        style={{
+          background: "linear-gradient(182deg, #121212 50%, #E0E0E0 50%)",
+        }}
+      >
+        <div className="relative w-full overflow-hidden py-4 sm:py-6">
+          {/* Container dengan kemiringan -2 derajat */}
+          <div className="flex bg-[#CAFA0A] py-3 sm:py-5 rotate-2 scale-105 transform origin-center">
+            <div className="flex whitespace-nowrap animate-marquee">
+              {/* Group 1 */}
+              <div className="flex items-center gap-4 px-2">
+                <span className="text-black text-2xl sm:text-4xl lg:text-6xl font-bold font-rakkas uppercase">
+                  Mobile Development <span className="mx-4">✦</span>
+                  UI/UX Design <span className="mx-4">✦</span>
+                  Frontend Engineering <span className="mx-4">✦</span>
+                  Product Engineering <span className="mx-4">✦</span>
+                </span>
+              </div>
+
+              {/* Group 2 (Duplicate for seamless loop) */}
+              <div className="flex items-center gap-4 px-2">
+                <span className="text-black text-2xl sm:text-4xl lg:text-6xl font-bold font-rakkas uppercase">
+                  Mobile Development <span className="mx-4">✦</span>
+                  UI/UX Design <span className="mx-4">✦</span>
+                  Frontend Engineering <span className="mx-4">✦</span>
+                  Product Engineering <span className="mx-4">✦</span>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Skills Section */}
       <section
+        ref={sectionRef}
         id="skills"
-        className="scroll-mt-18 bg-white flex items-center justify-center"
+        className="relative h-[300vh] bg-[#E0E0E0]"
       >
-        <div className="w-full">
-          <div className="rounded-3xl pt-6 sm:pt-10 px-4 sm:px-6 lg:px-16">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-9 text-start animate-fade-in">
-              <span className="text-black">My </span>
-              <span style={{ color: "#2BB6C0" }}>Skills</span>
-            </h2>
-
-            {/* Skills Grid - Animated */}
-            <div className="flex justify-center items-center gap-4 sm:gap-8 lg:gap-12 xl:gap-16 pb-6 sm:pb-10 flex-wrap">
-              {skillsData.map((skill, index) => (
-                <div
-                  key={index}
-                  className="animate-fade-in-up transition-transform duration-300"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <SkillsCard
-                    title={skill.title}
-                    image={skill.image}
-                    linkTo={skill.linkTo}
-                  />
-                </div>
-              ))}
+        <div className="sticky top-0 h-screen overflow-hidden flex flex-col justify-start items-start pt-20 ">
+          {/* Horizontal Scrolling Track - Contains EVERYTHING */}
+          <motion.div
+            style={{ x: xSkills }}
+            className="flex items-start gap-20 pl-[60vw]" // Start padding at 100vw so it starts off-screen right
+          >
+            {/* 1. The Title Part of the Track - Higher Z-index to stay on top */}
+            <div className="z-10 relative">
+              <h2 className="text-8xl font-rakkas text-black leading-none whitespace-nowrap">
+                Skills & Expertise
+              </h2>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Running Section - Already has animation */}
-      <section className="relative flex items-center justify-center h-32 sm:h-36 lg:h-40 bg-white overflow-hidden">
-        <div
-          className="absolute z-20 w-full h-[40px] sm:h-[50px] lg:h-[60px] bg-[#FFFDFD] overflow-hidden shadow-xl flex items-center px-2 sm:px-4 animate-slide-in"
-          style={{ transform: "rotate(1deg)" }}
-        >
-          <div className="flex whitespace-nowrap animate-scroll-left">
-            <span className="text-sm sm:text-base lg:text-lg font-medium text-black mr-4 sm:mr-6 lg:mr-8">
-              Photography ✦ Mobile Development ✦ Front End ✦ Editing ✦
-            </span>
-            <span className="text-sm sm:text-base lg:text-lg font-medium text-black mr-4 sm:mr-6 lg:mr-8">
-              Photography ✦ Mobile Development ✦ Front End ✦ Editing ✦
-            </span>
-            <span className="text-sm sm:text-base lg:text-lg font-medium text-black mr-4 sm:mr-6 lg:mr-8">
-              Photography ✦ Mobile Development ✦ Front End ✦ Editing ✦
-            </span>
-            <span className="text-sm sm:text-base lg:text-lg font-medium text-black mr-4 sm:mr-6 lg:mr-8">
-              Photography ✦ Mobile Development ✦ Front End ✦ Editing ✦
-            </span>
-            <span className="text-sm sm:text-base lg:text-lg font-medium text-black mr-4 sm:mr-6 lg:mr-8">
-              Photography ✦ Mobile Development ✦ Front End ✦ Editing ✦
-            </span>
-          </div>
-        </div>
+            {/* 2. The Images Part of the Track - Wrapped to allow negative margin (overlap under title) */}
+            <div className="flex items-center -ml-[30vw] z-0 relative">
+              {frondData.map((item, index) => {
+                const yOffsets = [
+                  20, // Flutter (Mid-High)
+                  40, // React (Low)
+                  -10, // Next.js (High)
+                  30, // TypeScript (Low-Mid)
+                  10, // Figma (Center/Mid)
+                  45, // Firebase (Very Low)
+                  0, // Tailwind (Very High)
+                ];
 
-        <div
-          className="h-[40px] sm:h-[50px] lg:h-[60px] w-full rounded-full z-10 animate-pulse-slow"
-          style={{ backgroundColor: "#2BB6C0" }}
-        ></div>
+                // Specific Sizes for each item (vh) - Edit these to change size per item
+                const sizes = [
+                  270, // Flutter
+                  205, // React
+                  160, // Next.js
+                  150, // TypeScript
+                  310, // Figma
+                  160, // Firebase
+                  260, // Tailwind
+                ];
+
+                const verticalOffset = yOffsets[index % yOffsets.length] || 0;
+                const size = sizes[index % sizes.length] || item.size || 30;
+
+                return (
+                  <div
+                    key={index}
+                    className="flex-shrink-0 relative transition-transform duration-500  mx-10" // Added mx-5 for spacing between items
+                    style={{
+                      transform: `translateY(${verticalOffset}vh)`,
+                    }}
+                  >
+                    {/* Custom height based on 'sizes' array above, fallback to JSON or 30vh */}
+                    <div
+                      className="relative w-auto flex items-center justify-center"
+                      style={{ height: `${size}px` }}
+                    >
+                      <Image
+                        src={item.image || ""}
+                        alt={item.name}
+                        width={0}
+                        height={0}
+                        sizes="50vw"
+                        className="w-auto h-full object-contain drop-shadow-2xl"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+
+
+        </div>
       </section>
 
       {/* About Section */}
       <section
         id="about"
-        className="rounded-3xl scroll-mt-42 bg-white flex items-center justify-center py-6 sm:py-8 lg:py-10 min-h-[80vh]"
-        style={{ backgroundColor: "#F0F1F1" }}
+        className="relative z-20 bg-[#121212] h-screen overflow-hidden flex flex-col"
       >
-        <ClickSpark
-          sparkColor="#252526"
-          sparkSize={10}
-          sparkRadius={15}
-          sparkCount={8}
-          duration={400}
-        >
-          <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-8 sm:mb-12 lg:mb-16 text-center text-white animate-fade-in">
-              <span className="block">
-                <span className="text-black">About </span>
-                <span style={{ color: "#2BB6C0" }}>Me</span>
-              </span>
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col">
+          {/* Header - Center */}
+          <div className="pt-12 sm:pt-16 mb-8 sm:mb-12 text-center">
+            <h2 className="text-3xl sm:text-5xl lg:text-8xl font-rakkas tracking-tight">
+              <span className="text-[#CAFA0A]">The</span>{" "}
+              <span className="text-[#E0E0E0]">Brain</span>{" "}
+              <span className="text-[#CAFA0A]">Behind the Screen</span>
             </h2>
+          </div>
 
-            <div className="flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-12">
-              {/* Foto dengan Tilted Card - Animated */}
-              <div className="flex justify-center lg:justify-start animate-fade-in-left">
-                <div className="w-[220px] h-[280px] sm:w-[250px] sm:h-[320px] lg:w-[280px] lg:h-[350px] hover:scale-105 transition-transform duration-500">
-                  <TiltedCard
-                    imageSrc="/assets/images/profile/me.webp"
-                    altText="Allam Permata Putra"
-                    captionText="Allam Permata Putra"
-                    containerHeight="100%"
-                    containerWidth="100%"
-                    imageHeight="100%"
-                    imageWidth="100%"
-                    rotateAmplitude={15}
-                    scaleOnHover={1.1}
-                    showMobileWarning={false}
-                    showTooltip={true}
-                    displayOverlayContent={true}
-                  />
-                </div>
-              </div>
-
-              {/* Deskripsi - Animated */}
-              <div className="text-center lg:text-left max-w-xl lg:max-w-2xl animate-fade-in-right">
-                <h3 className="text-xl sm:text-2xl font-semibold text-black mb-3 sm:mb-4">
-                  Hi, I&apos;m{" "}
-                  <span style={{ color: "#2BB6C0" }}>Allam Permata Putra</span>
-                </h3>
-                <p className="text-sm sm:text-base text-black leading-relaxed mb-4 sm:mb-6">
-                  I&apos;m a passionate{" "}
-                  <span style={{ color: "#2BB6C0" }}>Frontend Developer</span>{" "}
-                  who loves building elegant and responsive user interfaces
-                  using <span style={{ color: "#2BB6C0" }}>React</span>,{" "}
-                  <span style={{ color: "#2BB6C0" }}>Tailwind CSS</span>, and{" "}
-                  <span style={{ color: "#2BB6C0" }}>Flutter</span>. I&apos;m
-                  also deeply interested in{" "}
-                  <span style={{ color: "#2BB6C0" }}>UI/UX</span>,{" "}
-                  <span style={{ color: "#2BB6C0" }}>web design</span>, and{" "}
-                  <span style={{ color: "#2BB6C0" }}>
-                    mobile app development
-                  </span>
-                  .
-                  <br />
-                  <br />
-                  Currently, I&apos;m working on my{" "}
-                  <span style={{ color: "#2BB6C0" }}>
-                    personal portfolio website
-                  </span>{" "}
-                  while continuously learning modern web technologies. My
-                  long-term goal is to{" "}
-                  <span style={{ color: "#2BB6C0" }}>work abroad</span> as a
-                  developer and contribute to building impactful digital
-                  solutions.
-                </p>
-
-                {/* Tombol Download CV - Animated */}
-                <div className="flex justify-center lg:justify-start">
-                  <a
-                    href="/assets/documents/cvallam.pdf"
-                    download
-                    className="bg-[#2BB6C0] inline-flex items-center gap-2 text-black px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 text-sm sm:text-base hover:scale-110 hover:shadow-lg animate-bounce-gentle"
-                  >
-                    Download CV
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-4 h-4 sm:w-5 sm:h-5 transform -rotate-3 transition-transform duration-300 group-hover:translate-y-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M17 7L7 17M17 17V7H7"
-                      />
-                    </svg>
-                  </a>
-                </div>
+          {/* Content Layout - Image Left, Text Right */}
+          <div className="flex-1 flex flex-col lg:flex-row items-start gap-8 lg:gap-10">
+            {/* Image - Bottom Left - Bigger size */}
+            <div className="relative flex-shrink-0 -mb-0">
+              <div className="w-[280px] sm:w-[380px] lg:w-[480px]">
+                {/* Container cukup atur lebarnya aja, tingginya bakal ngikutin gambar */}
+                <Image
+                  src="/assets/images/profile/about1.svg"
+                  alt="Allam Permata Putra"
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  className="w-full h-auto" // Ini kunci buat auto-height
+                  priority
+                />
               </div>
             </div>
+
+            {/* Text Content - Right Side */}
+            <div className="flex-1 flex flex-col justify-start pb-0 mb-0 pt-10">
+              {/* "WHO AM I?" text */}
+              <div className="mb-4 sm:mb-6 -ml-6 sm:-ml-10 lg:-ml-16 lg:mb-10">
+                <span className="text-[#E0E0E0] font-montserrat-subrayada font-bold text-3xl tracking-widest">
+                  WHO AM I?
+                </span>
+              </div>
+
+              {/* Content Box - Smaller text */}
+              <p className="text-xs sm:text-sm lg:text-base font-medium text-[#E0E0E0] leading-relaxed font-montserrat-alternates text-justify">
+                I&apos;m Allam Permata Putra, a frontend-focused engineer
+                building web and mobile products with a strong UI/UX mindset and
+                a product-driven approach. I enjoy solving complex
+                challenges—crafting clear user flows, high-performance
+                interfaces, and intuitive dashboards for growing digital
+                platforms. Outside of development, I spend time cycling,
+                exploring interface trends, and working on visual details
+                through photography.
+              </p>
+            </div>
           </div>
-        </ClickSpark>
+        </div>
       </section>
 
       {/* Education Section */}
       <section
         id="education"
-        className="scroll-mt-18 bg-white flex items-center justify-center py-8 sm:py-12"
+        className="relative z-20 bg-[#242424] flex justify-center"
       >
-        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-8 sm:mb-12 lg:mb-16 text-center text-black animate-fade-in">
-              My Education
-            </h2>
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row">
+          {/* Left Side: Timeline & Details (SCROLLING) */}
+          <div className="w-full lg:w-1/2 flex flex-col relative z-10 pt-[70vh] pb-[60vh]">
+            <div className="flex flex-col gap-[40vh] border-l-[3px] border-[#CAFA0A] ml-[80px] sm:ml-[110px] pl-8 lg:pl-12">
+              {educationData.map((item, index) => {
+                const [start, end] = item.period
+                  .split(/-/)
+                  .map((s) => s.trim());
+                const isActive = index === activeEduIndex;
 
-            <div className="relative">
-              {/* Timeline line - Animated */}
-              <div className="absolute left-4 sm:left-1/2 sm:transform sm:-translate-x-1/2 top-0 bottom-0 w-0.5 border-l-2 border-dashed border-black animate-draw-line"></div>
-
-              {/* Timeline items - Animated */}
-              <div className="space-y-8 sm:space-y-12">
-                {educationData.map((item, index) => (
+                return (
                   <div
                     key={index}
-                    className="relative animate-fade-in-up"
-                    style={{ animationDelay: `${index * 200}ms` }}
+                    className="flex gap-6 sm:gap-10 items-center relative transition-opacity duration-500"
+                    style={{ opacity: isActive ? 1 : 0.3 }} // Dim inactive items
+                    ref={(el) => {
+                      educationItemRefs.current[index] = el;
+                    }}
+                    data-index={index}
                   >
-                    {/* Mobile Layout */}
-                    <div className="sm:hidden">
-                      <div className="absolute left-4 transform -translate-x-1/2 z-10 w-5 h-5 rounded-full bg-white border-2 border-gray-400 flex items-center justify-center animate-scale-in">
-                        <div
-                          className={`w-3 h-3 rounded-full ${
-                            item.isActive
-                              ? "bg-[#2BB6C0] animate-pulse-slow"
-                              : "bg-black"
-                          }`}
-                        ></div>
-                      </div>
-
-                      <div className="ml-8 pl-4 hover:translate-x-2 transition-transform duration-300">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                          {item.level}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-2">
-                          {item.period}
-                        </p>
-                        <p className="text-base font-medium text-gray-800">
-                          {item.school}
-                        </p>
-                      </div>
+                    {/* Year Column - Absolute Positioned to left of border */}
+                    <div
+                      className="absolute -left-[100px] sm:-left-[140px] 
+             top-1/2 -translate-y-1/2
+             flex flex-col text-xl sm:text-2xl font-bold 
+             leading-tight text-center w-[80px] 
+             font-montserrat-subrayada transition-all duration-500"
+                    >
+                      <span className={"text-[#000000]"}>{start}</span>
+                      <span className={"text-[#000000]"}>{end}</span>
                     </div>
 
-                    {/* Desktop Layout */}
-                    <div className="hidden sm:flex items-center group">
-                      <div className="flex-1 text-right pr-8 lg:pr-12 group-hover:translate-x-2 transition-transform duration-300">
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">
-                          {item.level}
-                        </h3>
-                        <p className="text-gray-600 text-sm sm:text-base">
-                          {item.period}
-                        </p>
-                      </div>
+                    <div className="flex flex-col items-start">
+                      {/* School Name */}
+                      <h3
+                        className={`text-xl sm:text-2xl lg:text-3xl font-bold uppercase font-montserrat-subrayada max-w-md leading-normal transition-colors duration-300 ${
+                          isActive ? "text-white" : "text-[#4A4A4A]"
+                        }`}
+                      >
+                        {item.school.map((line, i) => (
+                          <span key={i} className="block">
+                            {line}
+                          </span>
+                        ))}
+                      </h3>
 
-                      <div className="absolute left-1/2 transform -translate-x-1/2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white border-2 border-gray-400 flex items-center justify-center group-hover:scale-125 transition-transform duration-300">
-                        <div
-                          className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${
-                            item.isActive
-                              ? "bg-[#2BB6C0] animate-pulse-slow"
-                              : "bg-black"
-                          }`}
-                        ></div>
-                      </div>
-
-                      <div className="flex-1 pl-8 lg:pl-12 group-hover:-translate-x-2 transition-transform duration-300">
-                        <p className="text-base sm:text-lg font-medium text-gray-800">
-                          {item.school}
-                        </p>
+                      {/* Collapsible Image Box */}
+                      <div
+                        className={`transition-all duration-500 ease-in-out overflow-hidden ${isActive ? "max-h-[300px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"}`}
+                      >
+                        <div className="w-[200px] sm:w-[280px] h-[120px] sm:h-[160px] bg-[#D9D9D9] relative">
+                          {item.image && (
+                            <Image
+                              src={item.image}
+                              alt="School"
+                              fill
+                              className="object-cover"
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Side: Title & Image (STICKY) */}
+          <div className="w-full lg:w-1/2 lg:h-screen lg:sticky lg:top-0 flex flex-col items-end justify-between py-10 lg:py-0 overflow-visible lg:overflow-visible">
+            {/* Title: THE FOUNDATION */}
+            <div className="text-left mt-10 lg:mt-16 mb-32 lg:mb-48 z-20 mr-4 lg:mr-10">
+              <h2 className="text-5xl sm:text-7xl lg:text-7xl font-bold font-montserrat-subrayada uppercase leading-[0.8] tracking-wide relative">
+                <span className="block text-[#E0E0E0] inline-block mb-2 pb-1 relative z-10">
+                  THE
+                </span>
+                <span className="block text-[#E0E0E0] relative z-10">
+                  FOUNDATION
+                </span>
+              </h2>
+            </div>
+
+            {/* Profile Image */}
+            <div
+              className="relative 
+  w-[260px] h-[340px] 
+  sm:w-[340px] sm:h-[430px] 
+  lg:w-[500px] lg:h-[70vh] 
+  -mr-10 lg:mr-0 lg:absolute lg:bottom-0 lg:right-32"
+            >
+              <Image
+                src="/assets/images/profile/edu.svg"
+                alt="Education Profile"
+                fill
+                className="object-contain object-bottom-right"
+                priority
+              />
             </div>
           </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section className="bg-white flex items-center justify-center py-8 md:py-15">
-        <div className="w-full px-4 md:px-8 lg:px-16">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-8 md:gap-16 lg:gap-32">
-            <div className="flex-1 animate-fade-in-left">
-              <h2 className="text-3xl md:text-4xl lg:text-6xl font-bold mb-6 md:mb-8 text-black leading-tight">
-                Let&apos;s Work{" "}
-                <span style={{ color: "#2BB6C0" }}>Together</span>
-              </h2>
-              <p className="text-gray-600 text-lg md:text-xl leading-relaxed max-w-full lg:max-w-lg">
-                Got an idea to bring to life, interested in a creative
-                partnership, or simply want to connect? I&apos;m all ears —
-                reach out!
-              </p>
-            </div>
+      <section className="relative z-20 bg-[#E0E0E0] flex flex-col justify-center py-5 px-2 sm:px-8 lg:px-5">
+        <div className="w-full ">
+          <div className="flex flex-col items-start gap-8">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-black uppercase tracking-tight font-montserrat-subrayada">
+              INTERESTED IN CONNECTING?
+            </h2>
 
-            <div className="flex-shrink-0 w-full lg:w-auto text-left lg:text-right animate-fade-in-right">
-              <div className="mb-6 md:mb-10">
-                <h3 className="text-black font-semibold text-lg mb-2">
-                  Contact me
-                </h3>
-                <a
-                  href="mailto:permataallam7@gmail.com"
-                  className="text-gray-600 hover:text-black transition-colors duration-300 break-all md:break-normal hover:underline"
-                >
-                  permataallam7@gmail.com
-                </a>
-              </div>
+            <p className="text-xl sm:text-2xl lg:text-6xl font-bold text-black font-montserrat-subrayada text-justify">
+              IF YOU HAVE ANY QUESTIONS OR WOULD LIKE TO DISCUSS IDEAS, PLEASE
+              FEEL FREE TO REACH OUT.
+            </p>
 
-              <div>
-                <a
-                  href="https://mail.google.com/mail/?view=cm&to=permataallam7@gmail.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block w-full lg:w-auto px-6 md:px-8 py-3 md:py-4 border-2 border-black text-black rounded-lg hover:bg-black hover:text-white transition-all duration-300 font-medium text-center hover:scale-105 hover:shadow-lg"
-                >
-                  Let&apos;s Collaborate
-                </a>
-              </div>
+            <div className="-mt-8">
+              <a
+                href="mailto:permataallam7@gmail.com"
+                className="inline-flex items-center justify-center bg-[#9D00FF] border-[3px] border-black text-black px-6 py-3 text-lg font-bold uppercase font-montserrat-subrayada hover:bg-[#8000d1] "
+              >
+                CONTACT ME
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* footer Section */}
       <Footer />
-
-      {/* Add custom animations styles */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes fadeInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes fadeInRight {
-          from {
-            opacity: 0;
-            transform: translateX(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes slideUpSlow {
-          from {
-            transform: translateX(-50%) translateY(100%);
-          }
-          to {
-            transform: translateX(-50%) translateY(33.333%);
-          }
-        }
-
-        @keyframes slideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: rotate(1deg) translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: rotate(1deg) translateY(0);
-          }
-        }
-
-        @keyframes expandWidth {
-          from {
-            width: 0;
-          }
-          to {
-            width: 100%;
-          }
-        }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
-        @keyframes bounceGentle {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-        }
-
-        @keyframes pulseSlow {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.7;
-          }
-        }
-
-        @keyframes scaleIn {
-          from {
-            transform: scale(0);
-          }
-          to {
-            transform: scale(1);
-          }
-        }
-
-        @keyframes drawLine {
-          from {
-            height: 0;
-          }
-          to {
-            height: 100%;
-          }
-        }
-
-        .animate-fade-in-down {
-          animation: fadeInDown 0.8s ease-out forwards;
-        }
-
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s ease-out forwards;
-          opacity: 0;
-        }
-
-        .animate-fade-in-left {
-          animation: fadeInLeft 0.8s ease-out forwards;
-        }
-
-        .animate-fade-in-right {
-          animation: fadeInRight 0.8s ease-out forwards;
-        }
-
-        .animate-fade-in {
-          animation: fadeIn 0.8s ease-out forwards;
-        }
-
-        .animate-slide-up-slow {
-          animation: slideUpSlow 1s ease-out forwards;
-        }
-
-        .animate-slide-in-left {
-          animation: slideInLeft 0.8s ease-out forwards;
-        }
-
-        .animate-slide-in-right {
-          animation: slideInRight 0.8s ease-out forwards;
-        }
-
-        .animate-slide-in {
-          animation: slideIn 0.8s ease-out forwards;
-        }
-
-        .animate-expand-width {
-          animation: expandWidth 1s ease-out forwards;
-        }
-
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-
-        .animate-bounce-gentle {
-          animation: bounceGentle 2s ease-in-out infinite;
-        }
-
-        .animate-pulse-slow {
-          animation: pulseSlow 3s ease-in-out infinite;
-        }
-
-        .animate-scale-in {
-          animation: scaleIn 0.5s ease-out forwards;
-        }
-
-        .animate-draw-line {
-          animation: drawLine 1.5s ease-out forwards;
-        }
-
-        .animation-delay-200 {
-          animation-delay: 200ms;
-        }
-
-        .animation-delay-400 {
-          animation-delay: 400ms;
-        }
-
-        .animation-delay-600 {
-          animation-delay: 600ms;
-        }
-
-        .animation-delay-800 {
-          animation-delay: 800ms;
-        }
-      `,
-        }}
-      />
     </div>
   );
 }

@@ -2,7 +2,8 @@
 import Footer from '@/components/Footer';
 import NavbarGalery from '@/components/Navbar2';
 import { useState } from 'react';
-import { projectData } from '@/components/data';
+import portfolioData from '@/data/portfolio-data.json';
+const { projectData } = portfolioData;
 
 // ✅ Buat tipe data biar gak pakai any
 interface Project {

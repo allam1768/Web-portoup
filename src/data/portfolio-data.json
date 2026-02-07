@@ -3,67 +3,83 @@
     {
       "level": "Elementary school",
       "period": "2014 - 2020",
-      "school": "MIN 4 Jakarta Selatan",
+      "school": [
+        "MIN 4",
+        "Jakarta Selatan"
+      ],
       "isActive": false,
-      "image": ""
+      "image": "/assets/images/education/min.svg"
     },
     {
       "level": "Junior high school",
       "period": "2020 - 2023",
-      "school": "Trenmatika Islamic Boarding School",
+      "school": [
+        "Trenmatika",
+        "Islamic Boarding School"
+      ],
       "isActive": false,
-      "image": ""
+      "image": "/assets/images/education/tm.svg"
     },
     {
       "level": "Vocational School",
-      "period": "2023 - Now",
-      "school": "SMK Raden Umar Said",
+      "period": "2023-Now",
+      "school": [
+        "SMK",
+        "Raden Umar Said"
+      ],
       "isActive": true,
-      "image": ""
+      "image": "/assets/images/education/rus.svg"
     }
   ],
   "projectData": [
     {
       "projectName": "Space & Plane Calculator",
-      "image": "/assets/images/projects/tugas puasa.png",
+      "image": "/assets/images/projects/tugas puasa.webp",
       "date": "23,04,2024",
       "link": "https://github.com/allam1768/TugasPuasa2.git",
       "description": "To calculate 2D & 3D shapes that helps users find the area and volume of \nvarious geometric shapes."
     },
     {
       "projectName": "Tiketindo",
-      "image": "/assets/images/projects/Tiketindo.png",
+      "image": "/assets/images/projects/Tiketindo.webp",
       "date": "25,09,2024",
       "link": "https://tiket-indo.vercel.app/",
       "description": "online ticketing website for various types of transportation across all regions of Indonesia. Fast, easy, and \n convenient  for your journey."
     },
     {
-      "projectName": "WebPorto",
-      "image": "/assets/images/projects/Web portofolio.png",
+      "projectName": "WebPorto1",
+      "image": "/assets/images/projects/Web portofolio.webp",
       "date": "13,06,2025",
-      "link": "https://github.com/allam1768/Web-porto.git",
+      "link": "https://a-lamp.vercel.app",
       "description": "This website is a personal portfolio showcasing various creative and technical projects that I have worked on."
     },
     {
       "projectName": "CourseMiut",
-      "image": "/assets/images/projects/CourseMiut.png",
+      "image": "/assets/images/projects/CourseMiut.webp",
       "date": "20,01,2025",
       "link": "https://404",
       "description": "CourseMiut is an online course platform designed specifically for those of you who want to learn coding from basic to advanced."
     },
     {
       "projectName": "Movapp",
-      "image": "/assets/images/projects/movapp.jpg",
+      "image": "/assets/images/projects/movapp.webp",
       "date": "14,10,2024",
       "link": "https://github.com/allam1768/movapp.git",
       "description": "Movapp is a movie app that makes it easy for you to enjoy movies."
     },
     {
       "projectName": "Hamatech",
-      "image": "/assets/images/projects/hamatech.jpg",
+      "image": "/assets/images/projects/hamatech.webp",
       "date": "10,02,2025",
       "link": "https://404",
       "description": "Hamatech is a pest control monitoring application specifically designed to help pest control companies."
+    },
+    {
+      "projectName": "Solat App",
+      "image": "/assets/images/projects/Frame 427318942 (8).webp",
+      "date": "15,02,2026",
+      "link": "https://drive.google.com/drive/folders/1kKgQwffShvFP57T50BWBlV82uJ5u4aR5?usp=drive_link",
+      "description": "I built a prayer time app designed to keep users consistent with daily worship, featuring precise schedules, notifications, and an intuitive mobile-first experience."
     }
   ],
   "skillsData": [
@@ -80,68 +96,42 @@
   ],
   "frondData": [
     {
-      "name": "JavaScript",
-      "image": "/assets/icons/tech/js.svg"
+      "name": "Flutter",
+      "image": "/assets/icons/tech/flutter.svg",
+      "description": "UI toolkit for building natively compiled applications from single codebase.",
+      "size": 40
+    },    {
+      "name": "React",
+      "image": "/assets/icons/tech/react.svg",
+      "description": "JavaScript library for building interactive and dynamic user interfaces.",
+      "size": 25
+    },{
+      "name": "Next.js",
+      "image": "/assets/icons/tech/next.svg",
+      "description": "React framework for production grade full-stack web applications.",
+      "size": 30
     },
     {
       "name": "TypeScript",
-      "image": "/assets/icons/tech/ts.svg"
-    },
-    {
-      "name": "HTML",
-      "image": "/assets/icons/tech/html.svg"
-    },
-    {
-      "name": "CSS",
-      "image": "/assets/icons/tech/css.svg"
+      "image": "/assets/icons/tech/ts.svg",
+      "description": "Strongly typed superset of JavaScript for scalable app development.",
+      "size": 35
+    },    {
+      "name": "Figma",
+      "image": "/assets/icons/tech/figma.svg",
+      "description": "Collaborative interface design tool for creating stunning user experiences.",
+      "size": 35
+    },    {
+      "name": "Firebase",
+      "image": "/assets/icons/tech/firebase.svg",
+      "description": "Backend-as-a-Service platform for hosting, database, and authentication.",
+      "size": 25
     },
     {
       "name": "Tailwind CSS",
-      "image": "/assets/icons/tech/tw.svg"
-    },
-    {
-      "name": "React.js",
-      "image": "/assets/icons/tech/rt.svg"
-    },
-    {
-      "name": "Next.js",
-      "image": "/assets/icons/tech/next.svg"
-    },
-    {
-      "name": "Flutter",
-      "image": "/assets/icons/tech/ft.svg"
-    },
-    {
-      "name": "Dart",
-      "image": "/assets/icons/tech/dart.svg"
-    },
-    {
-      "name": "Java",
-      "image": "/assets/icons/tech/java.svg"
-    },
-    {
-      "name": "Laravel",
-      "image": "/assets/icons/tech/lv.svg"
-    },
-    {
-      "name": "Firebase",
-      "image": "/assets/icons/tech/fs.svg"
-    },
-    {
-      "name": "GitHub",
-      "image": "/assets/icons/tech/github.svg"
-    },
-    {
-      "name": "Visual Studio Code",
-      "image": "/assets/icons/tech/vs.svg"
-    },
-    {
-      "name": "Android Studio",
-      "image": "/assets/icons/tech/android.svg"
-    },
-    {
-      "name": "Figma",
-      "image": "/assets/icons/tech/figma.svg"
+      "image": "/assets/icons/tech/tw.svg",
+      "description": "Utility-first CSS framework for rapid and custom UI design.",
+      "size": 30
     }
   ],
   "galleryItems": [

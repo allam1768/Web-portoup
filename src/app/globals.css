@@ -1,20 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #E0E0E0;
   --foreground: #171717;
+  --font-montserrat-subrayada: 'Montserrat Subrayada', sans-serif;
+  cursor: none;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-montserrat-alternates);
+  --font-rakkas: var(--font-rakkas);
+  --font-montserrat-alternates: var(--font-montserrat-alternates);
+  --font-montserrat-subrayada: var(--font-montserrat-subrayada);
+  --font-raleway: var(--font-raleway);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #FFFFFF;
+    --background: #E0E0E0;
     --foreground: #ededed;
   }
 }
@@ -22,7 +27,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-montserrat-alternates), sans-serif;
 }
 
 @keyframes scroll-left {
@@ -52,4 +57,63 @@ body {
 
 .animate-fade-in {
   animation: fade-in 1s ease-out forwards;
+}
+
+/* Explicit Font Utilities */
+.font-raleway {
+  font-family: var(--font-raleway), sans-serif;
+}
+
+.font-rakkas {
+  font-family: var(--font-rakkas), serif;
+}
+
+.font-montserrat-alternates {
+  font-family: var(--font-montserrat-alternates), sans-serif;
+}
+
+.font-montserrat-subrayada {
+  font-family: var(--font-montserrat-subrayada), sans-serif;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px; /* Slightly thinner */
+}
+
+::-webkit-scrollbar-track {
+  background: #121212; /* No frame/background */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9D00FF; 
+  border-radius: 4px;
+  /* Removed border to make it just the "pentil" */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b538ff; 
+}
+
+/* Hide default cursor universally */
+*, *::before, *::after {
+  cursor: none !important;
+}
+
+/* DecryptedText Styles */
+.revealed {
+  color: #E0E0E0;
+}
+
+.encrypted {
+  color: #CAFA0A;
 }
