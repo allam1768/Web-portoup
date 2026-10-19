@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "node scripts/sync-github.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync": "node scripts/sync-github.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

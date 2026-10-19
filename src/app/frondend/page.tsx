@@ -1,8 +1,7 @@
 "use client";
 import Footer from '@/components/Footer';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import portfolioData from "@/data/portfolio-data.json";
-const { projectData } = portfolioData;
 import NavbarGalery from '@/components/Navbar2';
 
 interface ProjectCardProps {
@@ -75,6 +74,24 @@ const frondData = [
 
 
 export default function GalleryPage() {
+  const [projects, setProjects] = useState<any[]>(portfolioData.projectData || []);
+
+  useEffect(() => {
+    fetch('/api/projects')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProjects(data);
+        }
+      })
+      .catch((err) => console.error('Failed to fetch projects:', err));
+  }, []);
+
+  const sortedProjects = [...projects].sort((a, b) => {
+    const dateA = new Date(a.date.split(',').reverse().join('-'));
+    const dateB = new Date(b.date.split(',').reverse().join('-'));
+    return dateB.getTime() - dateA.getTime();
+  });
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50">
       <style jsx>{`
@@ -220,22 +237,16 @@ export default function GalleryPage() {
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projectData
-              .sort((a, b) => {
-                const dateA = new Date(a.date.split(',').reverse().join('-'));
-                const dateB = new Date(b.date.split(',').reverse().join('-'));
-                return dateB.getTime() - dateA.getTime();
-              })
-              .map((project, index) => (
-                <ProjectCard
-                  key={index}
-                  projectName={project.projectName}
-                  image={project.image}
-                  date={project.date}
-                  description={project.description}
-                  link={project.link}
-                />
-              ))}
+            {sortedProjects.map((project, index) => (
+              <ProjectCard
+                key={index}
+                projectName={project.projectName}
+                image={project.image}
+                date={project.date}
+                description={project.description}
+                link={project.link}
+              />
+            ))}
           </div>
         </div>
       </section>

@@ -1,16 +1,6 @@
 {
   "educationData": [
     {
-      "level": "Elementary school",
-      "period": "2014 - 2020",
-      "school": [
-        "MIN 4",
-        "Jakarta Selatan"
-      ],
-      "isActive": false,
-      "image": "/assets/images/education/min.svg"
-    },
-    {
       "level": "Junior high school",
       "period": "2020 - 2023",
       "school": [
@@ -22,64 +12,65 @@
     },
     {
       "level": "Vocational School",
-      "period": "2023-Now",
+      "period": "2023-2026",
       "school": [
         "SMK",
         "Raden Umar Said"
       ],
       "isActive": true,
       "image": "/assets/images/education/rus.svg"
+    },
+    {
+      "level": "Higher Education",
+      "period": "2026-Now",
+      "school": [
+        "IDN",
+        "Islamic Development Network"
+      ],
+      "isActive": true,
+      "image": "/assets/images/education/idn.svg"
     }
   ],
   "projectData": [
     {
-      "projectName": "Space & Plane Calculator",
-      "image": "/assets/images/projects/tugas puasa.webp",
-      "date": "23,04,2024",
-      "link": "https://github.com/allam1768/TugasPuasa2.git",
-      "description": "To calculate 2D & 3D shapes that helps users find the area and volume of \nvarious geometric shapes."
-    },
-    {
-      "projectName": "Tiketindo",
-      "image": "/assets/images/projects/Tiketindo.webp",
-      "date": "25,09,2024",
-      "link": "https://tiket-indo.vercel.app/",
-      "description": "online ticketing website for various types of transportation across all regions of Indonesia. Fast, easy, and \n convenient  for your journey."
-    },
-    {
-      "projectName": "WebPorto1",
-      "image": "/assets/images/projects/Web portofolio.webp",
-      "date": "13,06,2025",
-      "link": "https://a-lamp.vercel.app",
-      "description": "This website is a personal portfolio showcasing various creative and technical projects that I have worked on."
-    },
-    {
-      "projectName": "CourseMiut",
-      "image": "/assets/images/projects/CourseMiut.webp",
-      "date": "20,01,2025",
-      "link": "https://404",
-      "description": "CourseMiut is an online course platform designed specifically for those of you who want to learn coding from basic to advanced."
-    },
-    {
-      "projectName": "Movapp",
-      "image": "/assets/images/projects/movapp.webp",
-      "date": "14,10,2024",
-      "link": "https://github.com/allam1768/movapp.git",
-      "description": "Movapp is a movie app that makes it easy for you to enjoy movies."
+      "projectName": "solat",
+      "image": "https://opengraph.githubassets.com/1/allam1768/solat",
+      "date": "20,08,2026",
+      "link": "https://github.com/allam1768/solat",
+      "githubUrl": "https://github.com/allam1768/solat",
+      "description": "Aplikasi pengingat waktu salat presisi berbasis Flutter dengan integrasi API Aladhan, alarm native Android, dan fitur smart overlay untuk disiplin ibadah."
     },
     {
       "projectName": "Hamatech",
       "image": "/assets/images/projects/hamatech.webp",
-      "date": "10,02,2025",
-      "link": "https://404",
+      "date": "17,07,2026",
+      "link": "https://github.com/allam1768/Hamatech",
+      "githubUrl": "https://github.com/allam1768/Hamatech",
       "description": "Hamatech is a pest control monitoring application specifically designed to help pest control companies."
     },
     {
-      "projectName": "Solat App",
-      "image": "/assets/images/projects/Frame 427318942 (8).webp",
-      "date": "15,02,2026",
-      "link": "https://drive.google.com/drive/folders/1kKgQwffShvFP57T50BWBlV82uJ5u4aR5?usp=drive_link",
-      "description": "I built a prayer time app designed to keep users consistent with daily worship, featuring precise schedules, notifications, and an intuitive mobile-first experience."
+      "projectName": "movapp",
+      "image": "/assets/images/projects/movapp.webp",
+      "date": "17,07,2026",
+      "link": "https://github.com/allam1768/movapp",
+      "githubUrl": "https://github.com/allam1768/movapp",
+      "description": "Movapp is a movie app that makes it easy for you to enjoy movies."
+    },
+    {
+      "projectName": "Space-and-Plane-Calculator",
+      "image": "/assets/images/projects/tugas puasa.webp",
+      "date": "17,07,2026",
+      "link": "https://github.com/allam1768/Space-and-Plane-Calculator",
+      "githubUrl": "https://github.com/allam1768/Space-and-Plane-Calculator",
+      "description": "To calculate 2D & 3D shapes that helps users find the area and volume of various geometric shapes."
+    },
+    {
+      "projectName": "Web-porto",
+      "image": "https://opengraph.githubassets.com/1/allam1768/Web-porto",
+      "date": "17,07,2026",
+      "link": "https://github.com/allam1768/Web-porto",
+      "githubUrl": "https://github.com/allam1768/Web-porto",
+      "description": "This website is a personal portfolio showcasing various creative and technical projects that I have worked on."
     }
   ],
   "skillsData": [
@@ -100,12 +91,14 @@
       "image": "/assets/icons/tech/flutter.svg",
       "description": "UI toolkit for building natively compiled applications from single codebase.",
       "size": 40
-    },    {
+    },
+    {
       "name": "React",
       "image": "/assets/icons/tech/react.svg",
       "description": "JavaScript library for building interactive and dynamic user interfaces.",
       "size": 25
-    },{
+    },
+    {
       "name": "Next.js",
       "image": "/assets/icons/tech/next.svg",
       "description": "React framework for production grade full-stack web applications.",
@@ -116,12 +109,14 @@
       "image": "/assets/icons/tech/ts.svg",
       "description": "Strongly typed superset of JavaScript for scalable app development.",
       "size": 35
-    },    {
+    },
+    {
       "name": "Figma",
       "image": "/assets/icons/tech/figma.svg",
       "description": "Collaborative interface design tool for creating stunning user experiences.",
       "size": 35
-    },    {
+    },
+    {
       "name": "Firebase",
       "image": "/assets/icons/tech/firebase.svg",
       "description": "Backend-as-a-Service platform for hosting, database, and authentication.",

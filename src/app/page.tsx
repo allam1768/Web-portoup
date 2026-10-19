@@ -28,16 +28,29 @@ export default function App() {
   const ticking = useRef(false);
   const isIntersecting = useRef(false);
 
-  // Memoize sorted project data to avoid re-sorting on every render
+  const [projects, setProjects] = React.useState(portfolioData.projectData || []);
+
+  useEffect(() => {
+    fetch('/api/projects')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProjects(data);
+        }
+      })
+      .catch((err) => console.error('Failed to fetch projects:', err));
+  }, []);
+
+  // Memoize sorted project data
   const sortedProjectData = React.useMemo(() => {
-    return projectData
+    return [...projects]
       .sort((a, b) => {
         const dateA = a.date.split(",").reverse().join("");
         const dateB = b.date.split(",").reverse().join("");
         return dateB.localeCompare(dateA);
       })
       .slice(0, 3);
-  }, []); // Empty dependency array since projectData is static/imported
+  }, [projects]);
 
   useEffect(() => {
     // Logic utama scroll (dipisahkan dari event handler langsung)
